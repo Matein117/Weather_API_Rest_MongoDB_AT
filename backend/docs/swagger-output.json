@@ -1,0 +1,743 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "tittle": "Weather Data API",
+    "description": "JSON REST API for tracking data of the weather sightings",
+    "title": "REST API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "basePath": "",
+  "paths": {
+    "/docs": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/readings": {
+      "get": {
+        "summary": "Get a collection of all readings",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a specific reading by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Updating reading",
+          "content": {
+            "application/json": {
+              "schema": {
+                "id": {
+                  "type": "number"
+                },
+                "Device Name": {
+                  "type": "string"
+                },
+                "Precipitation mm/h": {
+                  "type": "number"
+                },
+                "Time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "Latitude": {
+                  "type": "number"
+                },
+                "Longitude": {
+                  "type": "number"
+                },
+                "Temperature (°C)": {
+                  "type": "number"
+                },
+                "Atmospheric Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Max Wind Speed (m/s/)": {
+                  "type": "number"
+                },
+                "Solar Radiation (W/m2/)": {
+                  "type": "number"
+                },
+                "Vapor Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Humidity (%)": {
+                  "type": "number"
+                },
+                "Wind Direction (°)": {
+                  "type": "number"
+                }
+              },
+              "example": {
+                "id": 1,
+                "Device Name": "Woodford_Sensor"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readings/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a specific reading by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readings/": {
+      "post": {
+        "summary": "Create a specific reading",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new reading",
+          "content": {
+            "application/json": {
+              "schema": {
+                "Device Name": {
+                  "type": "string"
+                },
+                "Precipitation mm/h": {
+                  "type": "number"
+                },
+                "Time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "Latitude": {
+                  "type": "number"
+                },
+                "Longitude": {
+                  "type": "number"
+                },
+                "Temperature (°C)": {
+                  "type": "number"
+                },
+                "Atmospheric Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Max Wind Speed (m/s/)": {
+                  "type": "number"
+                },
+                "Solar Radiation (W/m2/)": {
+                  "type": "number"
+                },
+                "Vapor Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Humidity (%)": {
+                  "type": "number"
+                },
+                "Wind Direction (°)": {
+                  "type": "number"
+                }
+              },
+              "example": {
+                "Device Name": "Woodford_Sensor",
+                "Precipitation mm/h": 0.085,
+                "Time": "2022-03-22T10:30:00.000Z",
+                "Latitude": 152.77891,
+                "Longitude": -26.95064,
+                "Atmospheric Pressure (kPa)": 128.02,
+                "Max Wind Speed (m/s/)": 4.94,
+                "Solar Radiation (W/m2/)": 113.21,
+                "Vapor Pressure (kPa)": 1.73,
+                "Humidity (%)": 73.84,
+                "Temperature (C)": 22.74,
+                "Wind Direction ()": 162.2
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a specific by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Updating reading",
+          "content": {
+            "application/json": {
+              "schema": {
+                "id": {
+                  "type": "number"
+                },
+                "Device Name": {
+                  "type": "string"
+                },
+                "Precipitation mm/h": {
+                  "type": "number"
+                },
+                "Time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "Latitude": {
+                  "type": "number"
+                },
+                "Longitude": {
+                  "type": "number"
+                },
+                "Temperature (°C)": {
+                  "type": "number"
+                },
+                "Atmospheric Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Max Wind Speed (m/s/)": {
+                  "type": "number"
+                },
+                "Solar Radiation (W/m2/)": {
+                  "type": "number"
+                },
+                "Vapor Pressure (kPa)": {
+                  "type": "number"
+                },
+                "Humidity (%)": {
+                  "type": "number"
+                },
+                "Wind Direction (°)": {
+                  "type": "number"
+                }
+              },
+              "example": {
+                "id": 1,
+                "Device Name": "Woodford_Sensor",
+                "Precipitation mm/h": 0.085,
+                "Time": "2022-03-22T10:30:00.000Z",
+                "Latitude": 152.77891,
+                "Longitude": -26.95064,
+                "Atmospheric Pressure (kPa)": 128.02,
+                "Max Wind Speed (m/s/)": 4.94,
+                "Solar Radiation (W/m2/)": 113.21,
+                "Vapor Pressure (kPa)": 1.73,
+                "Humidity (%)": 73.84,
+                "Temperature (C)": 22.74,
+                "Wind Direction ()": 162.2
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/logout": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "authenticationKey": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get a collection of all users",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  },
+                  "firstName": {
+                    "example": "any"
+                  },
+                  "lastName": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update user by ID PATCH",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "example": "any"
+                  },
+                  "id": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  },
+                  "firstName": {
+                    "example": "any"
+                  },
+                  "lastName": {
+                    "example": "any"
+                  },
+                  "authenticationKey": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get a specific user by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/by-key/{authenticationKey}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authenticationKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/register": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "firstName": {
+                    "example": "any"
+                  },
+                  "lastName": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tests": {
+      "get": {
+        "summary": "Get a collection of all tests",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tests/{id}": {
+      "get": {
+        "summary": "Get a specific test by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a specific test by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/tests/": {
+      "post": {
+        "summary": "Create a specific test",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new test.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "country": "string",
+                "city": "string"
+              },
+              "example": {
+                "country": "any",
+                "city": "any"
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a specific test by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new test",
+          "content": {
+            "application/json": {
+              "schema": {
+                "id": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z ]+$",
+                  "maxLength": 50
+                },
+                "city": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z ]+$",
+                  "maxLength": 50
+                }
+              },
+              "example": {
+                "id": 1,
+                "country": "Colombia"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a specific test by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new test",
+          "content": {
+            "application/json": {
+              "schema": {
+                "id": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z ]+$",
+                  "maxLength": 50
+                },
+                "city": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z ]+$",
+                  "maxLength": 50
+                }
+              },
+              "example": {
+                "id": 1,
+                "country": "Colombia",
+                "city": "Bogota"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
