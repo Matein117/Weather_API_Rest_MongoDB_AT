@@ -2,11 +2,10 @@ import { Router } from "express";
 
 import { validate } from "../middleware/validator.js";
 
-import { Test } from "../models/test.js";
+import auth from "../middleware/auth.js";
 
 import models from "../models/model-switcher.js";
 
-import auth from "../middleware/auth.js";
 
 const testsControllers = Router()
 
@@ -67,7 +66,7 @@ testsControllers.get(
     "/tests/:id",
     [
         auth(["admin"]),
-        validate({ body: getTestAllSchema }),
+        validate({ body: getTestByIDSchema }),
     ],    (req, res) => {
         const testID = req.params.id
         // #swagger.summary = 'Get a specific test by ID 
