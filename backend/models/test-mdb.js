@@ -11,6 +11,48 @@ export async function create(test) {
         })
 }
 
+
+export async function createMany(tests) {
+    const testsToInsert = tests.map(test => {
+        delete test.id;
+        return test;
+    });
+    const result = await db.collection("tests").insertMany(testsToInsert);
+    const insertedIds = Object.keys(result.insertedIds).map(id => result.insertedIds[id].toString());
+    return insertedIds;
+}
+
+    
+
+
+
+export async function deleteManyById(ids) {
+    const result = await db.collection("tests").deleteMany({ _id: { $in: ids.map(ObjectId) } });
+    console.log("Debug 2 /models/ result:", result);    
+    console.log("Debug 3 /models/ result.delete:",result.deletedCount);
+    return result.deletedCount;
+}
+
+
+// export async function deleteManyById(ids) { 
+//     console.log('Debug 1 /models/ Deleting tests with IDs:', ids);
+//     const idsToDelete = ids.map(id => new ObjectId(id));
+//     console.log('Debug 2 /models/ idsToDelete:', idsToDelete);
+//     const result = await db.collection("tests").deleteMany({ _id: { $in: idsToDelete } });
+//     console.log('Debug 3 /models/ result:', result);
+//     console.log('Debug 4 /models/ result.deletedCount:', result.deletedCount);
+//     return result.deletedCount;
+// }
+
+
+
+
+
+// export async function deleteByID(testID) { 
+//     return db.collection("tests").deleteOne({ _id: new ObjectId(testID) })
+// }
+
+
 export async function getAll() {
     let allTestResults = await db.collection("tests").find().toArray()
     return await allTestResults.map(testResult => 
@@ -18,7 +60,7 @@ export async function getAll() {
             testResult._id.toString(),
             testResult.country,
             testResult.city
-            )
+        )
     )
 }
 
@@ -50,3 +92,4 @@ export async function update(test) {
 export async function deleteByID(testID) { 
     return db.collection("tests").deleteOne({ _id: new ObjectId(testID) })
 }
+

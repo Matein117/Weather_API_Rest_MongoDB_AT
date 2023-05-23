@@ -14,20 +14,22 @@ export function Reading(
     temperatureC,
     windDirection
 ) {
+
+    
     return {
-        id,
-        deviceName,
-        precipitationMMH,
-        time,
-        latitude,
-        longitude,
-        atmosphericPressureKPa,
-        maxWindSpeedMS,
-        solarRadiationWM,
-        vaporPressureKPA,
-        humidity,
-        temperatureC,
-        windDirection,
+        "_id": id,
+        "Device Name": deviceName,
+        "Precipitation mm/h": precipitationMMH,
+        "Time": {$date: new Date(time).toISOString()}, 
+        "Latitude": latitude,
+        "Longitude": longitude,
+        "Atmospheric Pressure (kPa)": atmosphericPressureKPa,
+        "Max Wind Speed (m/s)": maxWindSpeedMS,
+        "Solar Radiation (W/m2)": solarRadiationWM,
+        "Vapor Pressure (kPa)": vaporPressureKPA,
+        "Humidity (%)": humidity,
+        "Temperature (C)": temperatureC,
+        "Wind Direction ()": windDirection,
     }
 }
 

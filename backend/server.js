@@ -10,9 +10,8 @@ const app = express()
 //CORS allows us to set what front-end URLs are allowed 
 // to access this API. 
 app.use(cors({
-    //Allow only do request in the website example.com 
-    origin: [ "https://example.com"],
-    // origin: true,
+    // Allow all origins
+    origin: true,
 }))
 
 // Enable JSON Request parsing middleware.
@@ -42,7 +41,7 @@ import usersControllers from "./controllers/users.js"
 app.use(usersControllers)
 
 //Tests
-import testsControllers from "./controllers/test.js"
+import testsControllers from "./controllers/tests.js"
 app.use(testsControllers)
 
 /* ====/\/\/\/\/\/\/\/\/\/\/\==== */

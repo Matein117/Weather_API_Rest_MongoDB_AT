@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { validate } from "../middleware/validator.js"
 import { Reading } from "../models/reading.js";
-import models from "../models/model-switcher.js";
+import { create, createMany, getAll, getByID, update, deleteByID, maximumPrecipitation  } from "../models/reading-mdb.js";
+import { validate } from "../middleware/validator.js"
 import auth from "../middleware/auth.js";
+import { removeNullFields } from "../models/utils.js";
 
-const readingsController = Router()
+const readingsControllers = Router()
 
 // 'CRUD' for 'Readings'
 
@@ -22,7 +23,7 @@ const getAllReadingSchema = {
 
 // GET ALL, method: get
 // show your the whole readings
-readingsController.get(
+readingsControllers.get(
     "/readings",
     [
         // auth(["admin","teacher","student", "iotSensor"]),
@@ -30,7 +31,7 @@ readingsController.get(
     ],
     async (req, res) => {
         // #swagger.summary = 'Get a collection of all readings'
-        const readings = await models.readingModel.getAll()
+        const readings = await getAll()
         
         res.status(200).json({
             status: 200,
@@ -42,6 +43,76 @@ readingsController.get(
 
 
 //     === END THE ENDPOINT FOR GET ALL ===
+
+//     === START THE ENDPOINT FOR GET MAXIMUM PRECIPITATION ===
+// SCHEMA 
+const getPrecipitationSchema = {
+    type: "object",
+    properties: {
+        min: {
+            type:"string"
+        },
+        max: {
+            type:"string"
+        },
+    }
+}
+
+// endpoint 
+readingsControllers.get(
+    "/readings/precipitation1",
+    async (req, res) => {
+        console.log("debugging Precipitation", req.query)
+        const min = req.body.min
+        const max = req.body.max
+
+        // const { min, max } = req.query; // Use req.query instead of req.body
+
+
+    // #swagger.summary = 'Get a Max. Pre.'
+
+/* 
+    #swagger.requestBody = {
+        description: "max Precipitation",
+        content: {
+            'application/json': {
+                schema: {
+                    "min": {
+                        type: "string"
+                    },
+                    "max": {
+                        type: "string"
+                    },          
+                },
+                example:{
+                    "min":"2021-01",
+                    "max":"2021-05"
+                }
+            }
+        }
+    }
+
+    */
+
+        try {
+            const maxPrecipitation = await maximumPrecipitation(min, max);
+            res.status(200).json({
+                status: 200,
+                message: "Maximum precipitation",
+                maxPrecipitation: maxPrecipitation,
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 500,
+                message: "Failed to get maximum precipitation",
+                error,
+            });
+        }
+    }
+);
+
+
+
 //     === START THE ENDPOINT FOR GET BY ID ===
 
 
@@ -57,7 +128,7 @@ const getReadingByIDSchema = {
 
 // GET BY ID, method: get
 //Show you by specific ID 
-readingsController.get(
+readingsControllers.get(
     "/readings/:id", 
     [
         // auth(["admin","teacher","student","iotSensor"]),
@@ -68,7 +139,7 @@ readingsController.get(
 
         const readingID = req.params.id
 
-        models.readingModel.getByID(readingID).then(readings => {
+        getByID(readingID).then(readings => {
             res.status(200).json ({
                 status: 200, 
                 message: "Get readings by ID",
@@ -122,9 +193,6 @@ const createReadingSchema = {
         "Longitude": {
             type: "number"
         },
-        "Temperature (°C)": {
-            type: "number"
-        },
         "Atmospheric Pressure (kPa)": {
             type: "number"
         },
@@ -140,20 +208,25 @@ const createReadingSchema = {
         "Humidity (%)": {
             type: "number"
         },
-        "Wind Direction (°)": {
+        "Temperature (C)": {
+            type: "number"
+        },
+        "Wind Direction ()": {
             type: "number"
         }
     }  
 };  
 
+
+
 // CREATE, method: post
 //Create a specific reading
-readingsController.post("/readings/",
+readingsControllers.post("/readings/",
 [
-    auth(["admin","teacher","iotSensor"]),
+    // auth(["admin","teacher","iotSensor"]),
     validate({ body: createReadingSchema }),                    
 ],
-(req, res) => {
+async (req, res) => {
     // #swagger.summary = 'Create a specific reading'
 
     /* 
@@ -179,7 +252,109 @@ readingsController.post("/readings/",
                     "Longitude": {
                         type: "number"
                     },
-                    "Temperature (°C)": {
+                    "Atmospheric Pressure (kPa)": {
+                        type: "number"
+                    },
+                    "Max Wind Speed (m/s)": {
+                        type: "number"
+                    },
+                    "Solar Radiation (W/m2)": {
+                        type: "number"
+                    },
+                    "Vapor Pressure (kPa)": {
+                        type: "number"
+                    },
+                    "Humidity (%)": {
+                        type: "number"
+                    },
+                    "Temperature (C)": {
+                        type: "number"
+                    },
+                    "Wind Direction ()": {
+                        type: "number"
+                    }
+                },
+                example:{
+                    "authenticationKey": "bdd390da-58bb-4c06-8df2-792ec841db96",
+                    "Device Name": "THIS_IS_A_Reading_4",
+                    "Precipitation mm/h": 1.111,
+                    "Time": "2023-04-25T10:30:00.000Z",
+                    "Latitude": 222.22222,
+                    "Longitude": -33.33333,
+                    "Atmospheric Pressure (kPa)": 444.44,
+                    "Max Wind Speed (m/s)": 5.55,
+                    "Solar Radiation (W/m2)": 666.66,
+                    "Vapor Pressure (kPa)": 7.77,
+                    "Humidity (%)": 88.88,
+                    "Temperature (C)": 99.99,
+                    "Wind Direction ()":  123.4
+                }
+            }
+        }
+    }
+
+    */
+    const readingData = req.body
+
+    const reading = new Reading(
+        null,
+        readingData['Device Name'],
+        readingData['Precipitation mm/h'],
+        new Date(readingData["Time"]),
+        readingData['Latitude'],
+        readingData['Longitude'],
+        readingData['Atmospheric Pressure (kPa)'],
+        readingData['Max Wind Speed (m/s)'],
+        readingData['Solar Radiation (W/m2)'],
+        readingData['Vapor Pressure (kPa)'],
+        readingData['Humidity (%)'],
+        readingData['Temperature (C)'],
+        readingData['Wind Direction ()']
+    );
+
+    create(reading).then(reading => {        
+        res.status(200).json({
+            status: 200,
+            message: "Create reading",
+            reading: reading
+        })
+    }).catch(error => {
+        res.status(500).json({ 
+            status:500,
+            message: "failed to create new reading",
+            error
+        })
+    }) 
+    
+})
+
+
+//     === END THE ENDPOINT FOR CREATE ===
+//     === START THW ENDPOINT FOR CREATE MANY ===
+
+//  Validator schema 
+const createReadingSchemaMany = {
+    type: "object",
+    properties: {
+        reading: {
+            type: "array",
+            items:{
+                type: "object",
+                properties: {
+                    "Device Name": {
+                        type: "string"
+                    },
+                    "Precipitation mm/h": {
+                        type: "number"
+                    },
+                    "Time": {
+                        type: "string",
+                        pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$"
+                    },
+                    "Latitude": {
+                        type: "number"
+                    },
+                    "Longitude": {
                         type: "number"
                     },
                     "Atmospheric Pressure (kPa)": {
@@ -197,64 +372,176 @@ readingsController.post("/readings/",
                     "Humidity (%)": {
                         type: "number"
                     },
-                    "Wind Direction (°)": {
+                    "Temperature (C)": {
+                        type: "number"
+                    },
+                    "Wind Direction ()": {
                         type: "number"
                     }
                 },
-                example:{
-                    "Device Name": "Woodford_Sensor",
-                    "Precipitation mm/h": 0.085,
-                    "Time": "2022-03-22T10:30:00.000Z",
-                    "Latitude": 152.77891,
-                    "Longitude": -26.95064,
-                    "Atmospheric Pressure (kPa)": 128.02,
-                    "Max Wind Speed (m/s)": 4.94,
-                    "Solar Radiation (W/m2)": 113.21,
-                    "Vapor Pressure (kPa)": 1.73,
-                    "Humidity (%)": 73.84,
-                    "Temperature (C)": 22.74,
-                    "Wind Direction ()":  162.2
+                required: [
+                    "Device Name",
+                    "Precipitation mm/h",
+                    "Time",
+                    "Latitude",
+                    "Longitude",
+                    "Atmospheric Pressure (kPa)",
+                    "Max Wind Speed (m/s)",
+                    "Solar Radiation (W/m2)",
+                    "Vapor Pressure (kPa)",
+                    "Humidity (%)",
+                    "Temperature (C)",
+                    "Wind Direction ()"
+                ]
+            }
+        }
+    },
+    required: [
+        "reading"
+    ]
+};  
+
+// CREATE, method: post
+//Create a Many Readings
+readingsControllers.post("/readings/many",
+[
+    // auth(["admin","teacher","iotSensor"]),
+    validate({ body: createReadingSchemaMany }),                    
+],
+async (req, res) => {
+    // #swagger.summary = 'Create a many Readings'
+
+    
+
+    /* 
+
+    #swagger.requestBody = {
+    description: "Adding many readings in one single station",
+    content: {
+        'application/json': {
+            schema: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        "Device Name": {
+                            type: "string"
+                        },
+                        "Precipitation mm/h": {
+                            type: "number"
+                        },
+                        "Time": {
+                            type: "string",
+                            format: "date-time"
+                        },
+                        "Latitude": {
+                            type: "number"
+                        },
+                        "Longitude": {
+                            type: "number"
+                        },
+                        "Atmospheric Pressure (kPa)": {
+                            type: "number"
+                        },
+                        "Max Wind Speed (m/s)": {
+                            type: "number"
+                        },
+                        "Solar Radiation (W/m2)": {
+                            type: "number"
+                        },
+                        "Vapor Pressure (kPa)": {
+                            type: "number"
+                        },
+                        "Humidity (%)": {
+                            type: "number"
+                        },
+                        "Temperature (C)": {
+                            type: "number"
+                        },
+                        "Wind Direction ()": {
+                            type: "number"
+                        }
+                    },
+                    example:{
+                        "authenticationKey": "829ef690-a373-4485-9afb-b9f4b8f80f9a",
+                        "reading": [
+
+                            {
+                                "Device Name": "Test test for create many 1",
+                                "Precipitation mm/h": 1.111,
+                                "Time": "2023-04-25T10:30:00.000Z",
+                                "Latitude": 222.22222,
+                                "Longitude": -33.33333,
+                                "Atmospheric Pressure (kPa)": 444.44,
+                                "Max Wind Speed (m/s)": 5.55,
+                                "Solar Radiation (W/m2)": 666.66,
+                                "Vapor Pressure (kPa)": 7.77,
+                                "Humidity (%)": 88.88,
+                                "Temperature (C)": 99.99,
+                                "Wind Direction ()":  123.4
+                            },{
+                                "Device Name": "Test test for create many 2",
+                                "Precipitation mm/h": 1.111,
+                                "Time": "2023-04-25T10:30:00.000Z",
+                                "Latitude": 222.22222,
+                                "Longitude": -33.33333,
+                                "Atmospheric Pressure (kPa)": 444.44,
+                                "Max Wind Speed (m/s)": 5.55,
+                                "Solar Radiation (W/m2)": 666.66,
+                                "Vapor Pressure (kPa)": 7.77,
+                                "Humidity (%)": 88.88,
+                                "Temperature (C)": 99.99,
+                                "Wind Direction ()":  123.4
+                            },
+                        ]    
+                    }
                 }
             }
         }
     }
+}
 
     */
+
+    console.log("Request body", req.body)
+
     const readingData = req.body
 
-    const reading = Reading(
+    const reading = readingData.reading.map(readingDataItem => Reading(
         null,
-        readingData.deviceName,
-        readingData.precipitationMMH,
-        readingData.time,
-        readingData.latitude,
-        readingData.longitude,
-        readingData.atmosphericPressureKPa,
-        readingData.maxWindSpeedMS,
-        readingData.solarRadiationWM,
-        readingData.vaporPressureKPA,
-        readingData.humidity,
-        readingData.temperatureC,
-        readingData.windDirection
-    )
-
-    create(reading).then(reading => {        
+        readingDataItem['Device Name'],
+        readingDataItem['Precipitation mm/h'],
+        new Date(readingDataItem["Time"]),
+        readingDataItem['Latitude'],
+        readingDataItem['Longitude'],
+        readingDataItem['Atmospheric Pressure (kPa)'],
+        readingDataItem['Max Wind Speed (m/s)'],
+        readingDataItem['Solar Radiation (W/m2)'],
+        readingDataItem['Vapor Pressure (kPa)'],
+        readingDataItem['Humidity (%)'],
+        readingDataItem['Temperature (C)'],
+        readingDataItem['Wind Direction ()']
+    ));
+    
+    createMany(reading).then(insertedReadings => {      
+        console.log("Inserted readings:", insertedReadings )      
         res.status(200).json({
             status: 200,
-            message: "Create reading",
-            reading: reading
+            message: "Created many Readings",
+            readings: insertedReadings
         })
     }).catch(error => {
+        console.log("Error:", error);
         res.status(500).json({ 
             status:500,
-            message: "failed to create new reading"
+            message: "failed to create many Readings",
+            error
         })
     }) 
     
 })
 
-
-//     === END THE ENDPOINT FOR CREATE ===
+//     === END THE ENDPOINT FOR CREATE MANY ===
 //     === START THE ENDPOINT FOR UPDATE "PATCH" ===
 
 
@@ -264,7 +551,7 @@ const updateReadingSchema = {
     required: ["id"],
     properties: {
         id: {
-            type: "number"
+            type: "string"
         },
         "Device Name": {
             type: "string"
@@ -281,10 +568,7 @@ const updateReadingSchema = {
         },
         "Longitude": {
             type: "number"
-        },
-        "Temperature (°C)": {
-            type: "number"
-        },
+        },   
         "Atmospheric Pressure (kPa)": {
             type: "number"
         },
@@ -300,16 +584,19 @@ const updateReadingSchema = {
         "Humidity (%)": {
             type: "number"
         },
-        "Wind Direction (°)": {
+        "Temperature (C)": {
+            type: "number"
+        },
+        "Wind Direction ()": {
             type: "number"
         }
     }
 }
 // UPDATE, method: patch
 // Update a specific reading by ID 
-readingsController.patch("/readings",
+readingsControllers.patch("/readings",
 [
-    auth(["admin","teacher","iotSensor"]),
+    // auth(["admin","teacher","iotSensor"]),
     validate({ body: updateReadingSchema }),
 ],
 async (req, res) => {
@@ -322,7 +609,7 @@ async (req, res) => {
             'application/json': {
                 schema: {
                     id: {
-                        type: "number"
+                        type: "string"
                     },
                     "Device Name": {
                         type: "string"
@@ -340,9 +627,6 @@ async (req, res) => {
                     "Longitude": {
                         type: "number"
                     },
-                    "Temperature (°C)": {
-                        type: "number"
-                    },
                     "Atmospheric Pressure (kPa)": {
                         type: "number"
                     },
@@ -358,13 +642,17 @@ async (req, res) => {
                     "Humidity (%)": {
                         type: "number"
                     },
-                    "Wind Direction (°)": {
+                    "Temperature (C)": {
+                        type: "number"
+                    },
+                    "Wind Direction ()": {
                         type: "number"
                     }
                 },
                 example:{
-                    "id": 1,
-                    "Device Name": "Woodford_Sensor"
+                    "authenticationKey": "829ef690-a373-4485-9afb-b9f4b8f80f9a",
+                    "id": "6451d1a8ad634b02939e7612",
+                    "Precipitation mm/h": 555555
                 }
             }
         }
@@ -372,33 +660,39 @@ async (req, res) => {
     */
     
     const readingData = req.body
+    
+    console.log("dib 4", readingData)
 
     const reading = Reading(
-        readingData.id,
-        readingData.deviceName,
-        readingData.precipitationMMH,
-        readingData.time,
-        readingData.latitude,
-        readingData.longitude,
-        readingData.atmosphericPressureKPa,
-        readingData.maxWindSpeedMS,
-        readingData.solarRadiationWM,
-        readingData.vaporPressureKPA,
-        readingData.humidity,
-        readingData.temperatureC,
-        readingData.windDirection
+        readingData['id'],
+        readingData['Device Name'],
+        readingData['Precipitation mm/h'],
+        null,
+        readingData['Latitude'],
+        readingData['Longitude'],
+        readingData['Atmospheric Pressure (kPa)'],
+        readingData['Max Wind Speed (m/s)'],
+        readingData['Solar Radiation (W/m2)'],
+        readingData['Vapor Pressure (kPa)'],
+        readingData['Humidity (%)'],
+        readingData['Temperature (C)'],
+        readingData['Wind Direction ()']
     )
-    
-    models.readingModel.update(reading).then(reading => {
+
+    const readingNoNull = removeNullFields(reading) // this function avoid lost of data when is updated 
+
+    console.log(readingNoNull)
+    update(readingNoNull).then(readingNoNull => {
         res.status(200).json({
             status: 200,
             message: "Update reading",
-            reading: reading
+            readingNoNull: readingNoNull
         })
     }).catch(error => {
         res.status(500).json({
             status: 500,
-            message: "Failed to update reading"
+            message: "Failed to update reading",
+            error
         })
     })
 })
@@ -470,10 +764,10 @@ const updateReadingSchemaPut = {
     }
 }
 
-readingsController.put("/readings/",
+readingsControllers.put("/readings/",
 [
-    auth(["admin","teacher","iotSensor"]),
-    validate({ body: updateReadingSchema }),
+    // auth(["admin","teacher","iotSensor"]),
+    validate({ body: updateReadingSchemaPut }),
 ],
 (req, res) => {
     // #swagger.summary = 'Update a specific by ID'
@@ -547,7 +841,6 @@ readingsController.put("/readings/",
     */
 
     const readingData = req.body
-
     const reading = Reading(
         readingData.id,
         readingData.deviceName,
@@ -564,7 +857,7 @@ readingsController.put("/readings/",
         readingData.windDirection
     )
     
-    models.readingModel.update(reading).then(reading => {
+    update(reading).then(reading => {
         res.status(200).json({
             status: 200,
             message: "Update reading",
@@ -588,32 +881,34 @@ const deleteReadingSchema = {
     required: ["id"],
     properties: {
         id: {
-            type: "number"
+            type: "string"
         }
     }
 }
 
 //DELETED, method: get 
 //Deleted the reading 
-readingsController.delete(
+readingsControllers.delete(
     "/readings/:id",
     [
-        auth(["admin","teacher","iotSensor"]),
-        validate({ body: updateReadingSchema }),
+        // auth(["admin","teacher","iotSensor"]),
+        validate({ body: deleteReadingSchema }),
     ],
     (req, res) => {
     // #swagger.summary = 'Delete a specific reading by ID'
         const readingID = req.body.id
     
-        models.readingModel.deleteByID(readingID).then(result => {
+        deleteByID(readingID).then(result => {
             res.status(200).json({
                 status: 200,
                 message: "reading deleted",
+                result
             })
         }).catch(error => {
             res.status(500).json({
                 status: 500,
                 message: "Failed to delete reading",
+                error
             })
         })
     }
@@ -623,4 +918,15 @@ readingsController.delete(
 //     === END THE ENDPOINT FOR DELETE ===
 
 
-export default readingsController 
+
+
+//     === END THE ENDPOINT FOR GET MAXIMUM PRECIPITATION ===
+
+
+//     === START THE ENDPOINT FOR GET MAXIMUM TEMP(C) FOR ALL STATIONS === 
+ //TODO: CREATE END POINT TO GET THE MAXIMUM TEMPERATURE (C) 
+//     === START THE ENDPOINT FOR GET MAXIMUM TEMP(C) FOR ALL STATIONS === 
+
+
+
+export default readingsControllers 

@@ -29,16 +29,27 @@ useEffect(() => {
                         <th>select</th>
                     </thead>
                     <tbody>
-                        {tests.map(test => <tr>
+                        
+                        {/* {tests.map(test => <tr>
                             <td>{test.id}</td>
                             <td>{test.country}</td>
                             <td>{test.city}</td>
-                            <button
-                                className="btn btn-xs mt-1"
-                            >Select</button>
-                        </tr>)}
+                            <td>
+                                <button 
+                                    className="btn btn-xs"
+                                >Select</button>
+                            </td>
+                        </tr>)} */}
+
                     </tbody>
                 </table>
+            </div>
+            {/* edit form */}
+            <div className="p-2">
+                <div>
+                    
+                </div>
+
             </div>
         </div>
     )

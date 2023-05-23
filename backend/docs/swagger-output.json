@@ -49,7 +49,7 @@
             "application/json": {
               "schema": {
                 "id": {
-                  "type": "number"
+                  "type": "string"
                 },
                 "Device Name": {
                   "type": "string"
@@ -67,9 +67,6 @@
                 "Longitude": {
                   "type": "number"
                 },
-                "Temperature (°C)": {
-                  "type": "number"
-                },
                 "Atmospheric Pressure (kPa)": {
                   "type": "number"
                 },
@@ -85,13 +82,51 @@
                 "Humidity (%)": {
                   "type": "number"
                 },
-                "Wind Direction (°)": {
+                "Temperature (C)": {
+                  "type": "number"
+                },
+                "Wind Direction ()": {
                   "type": "number"
                 }
               },
               "example": {
-                "id": 1,
-                "Device Name": "Woodford_Sensor"
+                "authenticationKey": "829ef690-a373-4485-9afb-b9f4b8f80f9a",
+                "id": "6451d1a8ad634b02939e7612",
+                "Precipitation mm/h": 555555
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readings/precipitation1": {
+      "get": {
+        "summary": "Get a Max. Pre.",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "max Precipitation",
+          "content": {
+            "application/json": {
+              "schema": {
+                "min": {
+                  "type": "string"
+                },
+                "max": {
+                  "type": "string"
+                }
+              },
+              "example": {
+                "min": "2021-01",
+                "max": "2021-05"
               }
             }
           }
@@ -100,6 +135,7 @@
     },
     "/readings/{id}": {
       "get": {
+        "summary": "Get a specific readings by ID",
         "description": "",
         "parameters": [
           {
@@ -191,9 +227,6 @@
                 "Longitude": {
                   "type": "number"
                 },
-                "Temperature (°C)": {
-                  "type": "number"
-                },
                 "Atmospheric Pressure (kPa)": {
                   "type": "number"
                 },
@@ -209,23 +242,27 @@
                 "Humidity (%)": {
                   "type": "number"
                 },
-                "Wind Direction (°)": {
+                "Temperature (C)": {
+                  "type": "number"
+                },
+                "Wind Direction ()": {
                   "type": "number"
                 }
               },
               "example": {
-                "Device Name": "Woodford_Sensor",
-                "Precipitation mm/h": 0.085,
-                "Time": "2022-03-22T10:30:00.000Z",
-                "Latitude": 152.77891,
-                "Longitude": -26.95064,
-                "Atmospheric Pressure (kPa)": 128.02,
-                "Max Wind Speed (m/s/)": 4.94,
-                "Solar Radiation (W/m2/)": 113.21,
-                "Vapor Pressure (kPa)": 1.73,
-                "Humidity (%)": 73.84,
-                "Temperature (C)": 22.74,
-                "Wind Direction ()": 162.2
+                "authenticationKey": "bdd390da-58bb-4c06-8df2-792ec841db96",
+                "Device Name": "THIS_IS_A_Reading_4",
+                "Precipitation mm/h": 1.111,
+                "Time": "2023-04-25T10:30:00.000Z",
+                "Latitude": 222.22222,
+                "Longitude": -33.33333,
+                "Atmospheric Pressure (kPa)": 444.44,
+                "Max Wind Speed (m/s/)": 5.55,
+                "Solar Radiation (W/m2/)": 666.66,
+                "Vapor Pressure (kPa)": 7.77,
+                "Humidity (%)": 88.88,
+                "Temperature (C)": 99.99,
+                "Wind Direction ()": 123.4
               }
             }
           }
@@ -303,6 +340,106 @@
                 "Humidity (%)": 73.84,
                 "Temperature (C)": 22.74,
                 "Wind Direction ()": 162.2
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readings/many": {
+      "post": {
+        "summary": "Create a many Readings",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding many readings in one single station",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "Device Name": {
+                      "type": "string"
+                    },
+                    "Precipitation mm/h": {
+                      "type": "number"
+                    },
+                    "Time": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "Latitude": {
+                      "type": "number"
+                    },
+                    "Longitude": {
+                      "type": "number"
+                    },
+                    "Atmospheric Pressure (kPa)": {
+                      "type": "number"
+                    },
+                    "Max Wind Speed (m/s/)": {
+                      "type": "number"
+                    },
+                    "Solar Radiation (W/m2/)": {
+                      "type": "number"
+                    },
+                    "Vapor Pressure (kPa)": {
+                      "type": "number"
+                    },
+                    "Humidity (%)": {
+                      "type": "number"
+                    },
+                    "Temperature (C)": {
+                      "type": "number"
+                    },
+                    "Wind Direction ()": {
+                      "type": "number"
+                    }
+                  },
+                  "example": {
+                    "authenticationKey": "829ef690-a373-4485-9afb-b9f4b8f80f9a",
+                    "reading": [
+                      {
+                        "Device Name": "Test test for create many 1",
+                        "Precipitation mm/h": 1.111,
+                        "Time": "2023-04-25T10:30:00.000Z",
+                        "Latitude": 222.22222,
+                        "Longitude": -33.33333,
+                        "Atmospheric Pressure (kPa)": 444.44,
+                        "Max Wind Speed (m/s/)": 5.55,
+                        "Solar Radiation (W/m2/)": 666.66,
+                        "Vapor Pressure (kPa)": 7.77,
+                        "Humidity (%)": 88.88,
+                        "Temperature (C)": 99.99,
+                        "Wind Direction ()": 123.4
+                      },
+                      {
+                        "Device Name": "Test test for create many 2",
+                        "Precipitation mm/h": 1.111,
+                        "Time": "2023-04-25T10:30:00.000Z",
+                        "Latitude": 222.22222,
+                        "Longitude": -33.33333,
+                        "Atmospheric Pressure (kPa)": 444.44,
+                        "Max Wind Speed (m/s/)": 5.55,
+                        "Solar Radiation (W/m2/)": 666.66,
+                        "Vapor Pressure (kPa)": 7.77,
+                        "Humidity (%)": 88.88,
+                        "Temperature (C)": 99.99,
+                        "Wind Direction ()": 123.4
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -491,6 +628,7 @@
         }
       },
       "delete": {
+        "summary": "Delete a specific user By ID",
         "description": "",
         "parameters": [
           {
@@ -508,6 +646,20 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -531,6 +683,73 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/many": {
+      "post": {
+        "summary": "Create a many Users",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding many Users in one single station",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "password": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "firstName": {
+                      "type": "string"
+                    },
+                    "lastName": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                    "user": [
+                      {
+                        "email": "studentB@server.com",
+                        "password": "abc123",
+                        "role": "studentB",
+                        "firstName": "studentB",
+                        "lastName": "studentB"
+                      },
+                      {
+                        "email": "studentC@server.com",
+                        "password": "abc123",
+                        "role": "studentC",
+                        "firstName": "studentC",
+                        "lastName": "studentC"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -566,6 +785,57 @@
                     "example": "any"
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/deleteMany": {
+      "delete": {
+        "summary": "Delete many Users by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Deleting many Users",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ids"
+                ],
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                "ids": [
+                  "645b3f4e9b9feee93455ea90",
+                  "645b3f4e9b9feee93455ea8f"
+                ]
               }
             }
           }
@@ -733,6 +1003,118 @@
                 "id": 1,
                 "country": "Colombia",
                 "city": "Bogota"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tests/many": {
+      "post": {
+        "summary": "Create a many Tests",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new Test",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "country": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "authenticationKey": "829ef690-a373-4485-9afb-b9f4b8f80f9a",
+                    "test": [
+                      {
+                        "country": "Tests for create many 1",
+                        "city": "Tests for create many 1"
+                      },
+                      {
+                        "country": "Tests for create many 2",
+                        "city": "Tests for create many 2"
+                      },
+                      {
+                        "country": "Tests for create many 3",
+                        "city": "Tests for create many 3"
+                      },
+                      {
+                        "country": "Tests for create many 4",
+                        "city": "Tests for create many 4"
+                      },
+                      {
+                        "country": "Tests for create many 5",
+                        "city": "Tests for create many 5"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tests/deleteMany": {
+      "delete": {
+        "summary": "Delete many tests by ID",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Deleting many tests",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ids"
+                ],
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                "ids": [
+                  "64230e5570a4fd40cb4d2ca9",
+                  "6423a3be27a38a7885ecdbc6"
+                ]
               }
             }
           }

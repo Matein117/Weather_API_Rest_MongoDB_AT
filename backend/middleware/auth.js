@@ -1,4 +1,4 @@
-import models from "../models/model-switcher.js"
+import { getByAuthenticationKey } from "../models/user-mdb.js";
 
 export default function auth(allowed_roles) {
     return function (req, res, next) {
@@ -6,9 +6,9 @@ export default function auth(allowed_roles) {
 
         if (authenticationKey) {
 
-            models.userModel.getByAuthenticationKey(authenticationKey)
+            getByAuthenticationKey(authenticationKey)
                 .then(user => {
-                    console.log(user)
+                    // console.log(user)
                     if (allowed_roles.includes(user.role)) {
                         next()
                     } else {
@@ -22,6 +22,7 @@ export default function auth(allowed_roles) {
                     res.status(401).json({
                         status: 401,
                         message: "Authentication key invalid",
+                        error
                     });
                 })
         } else {

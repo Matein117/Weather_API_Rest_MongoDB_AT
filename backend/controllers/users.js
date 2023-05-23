@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs"
 import { v4 as uuid4 } from "uuid"
 import { User } from "../models/user.js";
-import models from "../models/model-switcher.js"
+import { create, createMany, getAll, getByID, update, deleteByID, getByAuthenticationKey, getByEmail, deleteMany  } from "../models/user-mdb.js";
 import { validate } from "../middleware/validator.js";
 import auth from "../middleware/auth.js";
 import { removeNullFields } from "../models/utils.js";
@@ -10,7 +10,9 @@ import { removeNullFields } from "../models/utils.js";
 const userController = Router()
 
 
-// User login endpoint
+// ======= START ENDPOINT TO LOGIN =========//
+
+// SCHEMA
 const postUserLoginSchema = {
     type: "object",
     required: ["email", "password"],
@@ -31,16 +33,17 @@ userController.post(
         // access request body
         let loginData = req.body
 
-        models.userModel.getByEmail(loginData.email)
+        getByEmail(loginData.email)
             .then(user => {
                 if (bcrypt.compareSync(loginData.password, user.password)) {
                     user.authenticationKey = uuid4().toString()
 
-                    models.userModel.update(user).then(result => {
+                    update(user).then(result => {
                         res.status(200).json({
                             status: 200,
                             message: "user logged in",
                             authenticationKey: user.authenticationKey,
+                            result
                         })
                     })
                 } else {
@@ -53,13 +56,19 @@ userController.post(
             }).catch(error => {
                 res.status(500).json({
                     status: 500,
-                    message: "login failed"
+                    message: "login failed",
+                    error
+                    
                 })
             })
     }
 )
 
-// User logout endpoint
+// ======= END ENDPOINT TO LOGIN =========//
+
+// ======= START ENDPOINT TO LOGOUT =========//
+
+// SCHEMA
 const postUserLogoutSchema = {
     type: "object",
     required: ["authenticationKey"],
@@ -75,26 +84,33 @@ userController.post(
     validate({ body: postUserLogoutSchema }),
     (req, res) => {
         const authenticationKey = req.body.authenticationKey
-        models.userModel.getByAuthenticationKey(authenticationKey)
+        getByAuthenticationKey(authenticationKey)
             .then(user => {
                 user.authenticationKey = null
-                models.userModel.update(user).then(user => {
+                update(user).then(user => {
                     res.status(200).json({
                         status: 200,
-                        message: "user logged out"
+                        message: "user logged out",
+                        user
                     })
                 })
             }).catch(error => {
                 res.status(500).json({
                     status: 500,
-                    message: "failed to logout user"
+                    message: "failed to logout user",
+                    error
                 })
             })
     }
 )
 
 
-// Get user list endpoint
+// ======= END ENDPOINT TO LOGOUT =========//
+
+// ======= START ENDPOINT TO GET ALL LIST =========//
+
+
+// SCHEMA
 const getUserListSchema = {
     type: "object",
     properties: {}
@@ -108,7 +124,7 @@ userController.get(
     ],
     async (req, res) => {
         // #swagger.summary = 'Get a collection of all users'
-        const users = await models.userModel.getAll()
+        const users = await getAll()
 
         res.status(200).json({
             status: 200,
@@ -118,7 +134,13 @@ userController.get(
     }
 )
 
-/// Get user by ID endpoint
+
+// ======= END ENDPOINT TO GET ALL LIST =========//
+
+// ======= START ENDPOINT TO GET BY ID =========//
+
+
+/// SCHEMA
 const getUserByIDSchema = {
     type: "object",
     required: ["id"],
@@ -139,7 +161,7 @@ userController.get(
         // #swagger.summary = 'Get a specific user by ID 
         const userID = req.params.id
 
-        models.userModel.getByID(userID).then(user => {
+        getByID(userID).then(user => {
             res.status(200).json({
                 status: 200,
                 message: "Get user by ID",
@@ -149,12 +171,19 @@ userController.get(
             res.status(500).json({
                 status: 500,
                 message: "Failed to get user by ID",
+                error
             })
         })
     }
 )
 
-/// Get user by authentication key endpoint
+
+// ======= END ENDPOINT TO GET BY ID =========//
+
+// ======= START ENDPOINT TO GET AUTHENTICATION KEY =========//
+
+
+/// SCHEMA
 const getUserByAuthenticationKeySchema = {
     type: "object",
     required: ["authenticationKey"],
@@ -171,7 +200,7 @@ userController.get(
     (req, res) => {
         const authenticationKey = req.params.authenticationKey
 
-        models.userModel.getByAuthenticationKey(authenticationKey).then(user => {
+        getByAuthenticationKey(authenticationKey).then(user => {
             res.status(200).json({
                 status: 200,
                 message: "Get user by authentication key",
@@ -186,7 +215,13 @@ userController.get(
     }
 )
 
-/// Create user endpoint
+
+// ======= END ENDPOINT TO GET AUTHENTICATION KEY =========//
+
+// ======= START ENDPOINT TO CREATE A SINGLE USER =========//
+
+
+/// SCHEMA
 const createUserSchema = {
     type: "object",
     required: [
@@ -242,7 +277,7 @@ userController.post(
         )
 
         // Use the create model function to insert this user into the DB
-        models.userModel.create(user).then(user => {
+        create(user).then(user => {
             res.status(200).json({
                 status: 200,
                 message: "Created user",
@@ -252,12 +287,171 @@ userController.post(
             res.status(500).json({
                 status: 500,
                 message: "Failed to create user",
+                error
             })
         })
     }
 )
 
-/// Register user endpoint
+
+// ======= END ENDPOINT TO CREATE A SINGLE USER =========//
+
+// ======= START ENDPOINT TO CREATE MANY USERS =========//
+
+//  SCHEMA 
+const createUserSchemaMany = {
+    type: "object",
+    properties: {
+        user: {
+            type: "array",
+            items:{
+                type: "object",
+                properties: {
+                    email: {
+                        type: "string"
+                    },
+                    password: {
+                        type: "string"
+                    },
+                    role: {
+                        type: "string"
+                    },
+                    firstName: {
+                        type: "string"
+                    },
+                    lastName: {
+                        type: "string"
+                    },
+                },
+                required: [
+                    "email",
+                    "password",
+                    "role",
+                    "firstName",
+                    "lastName",
+                ]
+            }
+        }
+    },
+    required: [
+        "user"
+    ]
+};  
+
+// CREATE, method: post
+//Create a Many Users
+userController.post("/users/many",
+[
+    auth(["admin","teacher","iotSensor"]),
+    validate({ body: createUserSchemaMany }),                    
+],
+async (req, res) => {
+    // #swagger.summary = 'Create a many Users'
+    /* 
+
+    #swagger.requestBody = {
+    description: "Adding many Users in one single station",
+    content: {
+        'application/json': {
+            schema: {
+                type: 'array',
+                items: {
+                    type: "object",
+                    properties: {
+                        email: {
+                            type: "string"
+                        },
+                        password: {
+                            type: "string"
+                        },
+                        role: {
+                            type: "string"
+                        },
+                        firstName: {
+                            type: "string"
+                        },
+                        lastName: {
+                            type: "string"
+                        }
+                    },
+                    example:{
+                        "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                        "user": [
+                            {
+                                "email": "studentB@server.com",
+                                "password": "abc123",
+                                "role": "studentB",
+                                "firstName": "studentB",
+                                "lastName": "studentB"
+                            },
+                            {
+                                "email": "studentC@server.com",
+                                "password": "abc123",
+                                "role": "studentC",
+                                "firstName": "studentC",
+                                "lastName": "studentC"
+                            },
+                        ]    
+                    }
+                }
+            }
+        }
+    }
+}
+
+    */
+
+    console.log("Request body", req.body)
+
+    const userData = req.body
+
+    if (userData.user && userData.user.length > 0) {
+        userData.user.forEach(userDataItem => {
+            if (userDataItem.password && !userDataItem.password.startsWith("$2a")) {
+                userDataItem.password = bcrypt.hashSync(userDataItem.password);
+            }
+        });
+
+        const users = userData.user.map(userDataItem => ({
+            email: userDataItem.email,
+            password: userDataItem.password,
+            role: userDataItem.role,
+            firstName: userDataItem.firstName,
+            lastName: userDataItem.lastName,
+        }));
+
+        createMany(users)
+            .then(insertedUsers => {
+                console.log("Inserted users:", insertedUsers);
+                res.status(200).json({
+                    status: 200,
+                    message: "Created many Users",
+                    users: insertedUsers,
+                });
+            })
+            .catch(error => {
+                console.log("Error:", error);
+                res.status(500).json({
+                    status: 500,
+                    message: "Failed to create many Users",
+                    error,
+                });
+            });
+    } else {
+        res.status(400).json({
+            status: 400,
+            message: "No user data provided",
+        });
+    }
+});
+
+
+// ======= END ENDPOINT TO CREATE MANY USERS =========//
+
+// ======= START ENDPOINT TO REGISTER =========//
+
+
+/// SCHEMA
 const registerUserSchema = {
     type: "object",
     required: [
@@ -303,7 +497,7 @@ userController.post(
         )
 
         // Use the create model function to insert this user into the DB
-        models.userModel.create(user).then(user => {
+        create(user).then(user => {
             res.status(200).json({
                 status: 200,
                 message: "Registration successful",
@@ -313,12 +507,19 @@ userController.post(
             res.status(500).json({
                 status: 500,
                 message: "Registration failed",
+                error
             })
         })
     }
 )
 
-// Update user endpoint
+
+// ======= END ENDPOINT TO REGISTER =========//
+
+// ======= START ENDPOINT TO UPDATE =========//
+
+
+// SCHEMA
 const updateUserSchema = {
     type: "object",
     required: ["id"],
@@ -376,7 +577,7 @@ userController.patch(
         const userNoNull = removeNullFields(user) // this function avoid lost of data when is updated 
         
         // Use the update model function to update this user in the DB
-        models.userModel.update(userNoNull).then(userNoNull => {
+        update(userNoNull).then(userNoNull => {
             res.status(200).json({
                 status: 200,
                 message: "Updated user",
@@ -386,16 +587,112 @@ userController.patch(
             res.status(500).json({
                 status: 500,
                 message: "Failed to update user",
+                error
             })
         })
     })
 
 
+// ======= END ENDPOINT TO UPDATE =========//
+
 // TODO: endpoint with PUT here
 
-/// Delete user by ID endpoint
+// ======= START END POINT TO DELETE MANY =========// 
+
+// SCHEMA 
+
+const deleteManyUsersSchema = {
+    type: "object",
+    required: ["ids"],
+    properties: {
+        ids: {
+            type: "array",
+        }
+    },
+}  
+
+
+//DELETE MANY, methods: delete 
+// Delete many Users by ID
+userController.delete(
+"/users/deleteMany",
+[
+    auth(["admin"]),
+    validate({ body: deleteManyUsersSchema }),
+],
+(req, res) => {
+    console.log("Debug 0 /controllers/ Request body:", req.body); // Debugging statement
+
+    // #swagger.summary = 'Delete many Users by ID'
+/* 
+#swagger.requestBody = {
+    description: "Deleting many Users",
+    content: {
+        'application/json': {
+            schema: {
+                    type: "object",
+                    required: ["ids"],
+                    properties: {
+                        ids: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                required: ["id"],
+                                properties: {
+                                    id: {
+                                        type: "string",
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                example:{
+                    "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                    "ids": [
+                        "645b3f4e9b9feee93455ea90",
+                        "645b3f4e9b9feee93455ea8f" 
+                    ]
+                }
+            }
+        }
+    }
+}
+*/
+
+const userIds = req.body.ids;
+
+
+console.log("Debug 1 /Controllers/ userIds:", userIds); // Debugging statement
+
+
+deleteMany(userIds).then((result) => {
+    console.log("Debug 2 /controllers/  result:", result); // Debugging statement
+
+    res.status(200).json({
+        status: 200,
+        message: `${result} user(s) deleted`,
+    })
+}).catch((error) => {
+    console.log("Debug 3 /controllers/ error:", error); // Debugging statement
+        res.status(500).json({
+            status: 500,
+            message: "Failed to delete many Users",
+            error,
+        })
+    })
+}
+)
+
+// ======= START END POINT TO DELETE MANY =========// 
+
+
+// ======= START ENDPOINT TO DELETE =========//
+
+/// SCHEMA
 const deleteUserByIDSchema = {
     type: "object",
+    required: ["id"],
     properties: {
         id: {
             type: "string",
@@ -410,20 +707,33 @@ userController.delete(
         validate({ params: deleteUserByIDSchema }),
     ],
     (req, res) => {
-        const userID = req.params.id
+    // #swagger.summary = 'Delete a specific user By ID'
+        const userID = req.body.id
 
-        models.userModel.deleteByID(userID).then(result => {
+        deleteByID(userID).then(result => {
             res.status(200).json({
                 status: 200,
-                message: "User deleted",
+                message: "Single User deleted",
+                result
             })
         }).catch(error => {
             res.status(500).json({
                 status: 500,
                 message: "Failed to delete user",
+                error
             })
         })
     }
 )
+
+// ======= END ENDPOINT TO DELETE  =========// 
+
+
+
+//     === START THE ENDPOINT TO UPDATE MANY USERS === //
+ //TODO: CREATE END POINT TO UPDATE MANY USERS 
+//     === START THE ENDPOINT TO UPDATE MANY USERS === //
+
+
 
 export default userController
