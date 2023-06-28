@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs"
 import { v4 as uuid4 } from "uuid"
 import { User } from "../models/user.js";
-import { create, createMany, getAll, getByID, update, deleteByID, getByAuthenticationKey, getByEmail, deleteMany  } from "../models/user-mdb.js";
+import { create, createMany, getAll, getByID, update, deleteByID, getByAuthenticationKey, getByEmail, deleteMany, updateAccessLevel  } from "../models/user-mdb.js";
 import { validate } from "../middleware/validator.js";
 import auth from "../middleware/auth.js";
 import { removeNullFields } from "../models/utils.js";
@@ -119,7 +119,7 @@ const getUserListSchema = {
 userController.get(
     "/users",
     [
-        auth(["admin","teacher"]),
+        auth([ "admin", "teacher" ]),
         validate({ body: getUserListSchema }),
     ],
     async (req, res) => {
@@ -154,7 +154,7 @@ const getUserByIDSchema = {
 userController.get(
     "/users/:id",
     [
-    auth(["admin","teacher"]),
+    auth([ "admin","teacher" ]),
     validate({ params: getUserByIDSchema }),
     ],
     (req, res) => {
@@ -253,7 +253,7 @@ const createUserSchema = {
 userController.post(
     "/users",
     [
-        auth(["admin","teacher"]),   
+        // auth(["admin"]),   
         validate({ body: createUserSchema }),
     ],
     (req, res) => {
@@ -273,7 +273,8 @@ userController.post(
             userData.role,
             userData.firstName,
             userData.lastName,
-            null
+            null,
+            new Date().toISOString()
         )
 
         // Use the create model function to insert this user into the DB
@@ -342,7 +343,7 @@ const createUserSchemaMany = {
 //Create a Many Users
 userController.post("/users/many",
 [
-    auth(["admin","teacher","iotSensor"]),
+    // auth(["admin","teacher","iotSensor"]),
     validate({ body: createUserSchemaMany }),                    
 ],
 async (req, res) => {
@@ -378,18 +379,39 @@ async (req, res) => {
                         "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
                         "user": [
                             {
+                                "email": "studentA@server.com",
+                                "password": "abc123",
+                                "role": "student",
+                                "firstName": "studentA",
+                                "lastName": "studentA"
+                            },
+                            {
                                 "email": "studentB@server.com",
                                 "password": "abc123",
-                                "role": "studentB",
+                                "role": "student",
                                 "firstName": "studentB",
                                 "lastName": "studentB"
                             },
                             {
                                 "email": "studentC@server.com",
                                 "password": "abc123",
-                                "role": "studentC",
+                                "role": "student",
                                 "firstName": "studentC",
                                 "lastName": "studentC"
+                            },
+                            {
+                                "email": "studentD@server.com",
+                                "password": "abc123",
+                                "role": "student",
+                                "firstName": "studentD",
+                                "lastName": "studentD"
+                            },
+                            {
+                                "email": "studentE@server.com",
+                                "password": "abc123",
+                                "role": "student",
+                                "firstName": "studentE",
+                                "lastName": "studentE"
                             },
                         ]    
                     }
@@ -418,6 +440,10 @@ async (req, res) => {
             role: userDataItem.role,
             firstName: userDataItem.firstName,
             lastName: userDataItem.lastName,
+            authenticationKey: userDataItem.authenticationKey,
+            dateCreated: userDataItem.dateCreated // Add dateCreated field
+
+
         }));
 
         createMany(users)
@@ -648,10 +674,13 @@ userController.delete(
                     }
                 },
                 example:{
-                    "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                    "authenticationKey": "d0a4a0be-64bf-4fe9-badc-d101e9133415",
                     "ids": [
-                        "645b3f4e9b9feee93455ea90",
-                        "645b3f4e9b9feee93455ea8f" 
+                        "any ID here",
+                        "any ID here",
+                        "any ID here",
+                        "any ID here",
+                        "any ID here", 
                     ]
                 }
             }
@@ -730,9 +759,32 @@ userController.delete(
 
 
 
-//     === START THE ENDPOINT TO UPDATE MANY USERS === //
- //TODO: CREATE END POINT TO UPDATE MANY USERS 
-//     === START THE ENDPOINT TO UPDATE MANY USERS === //
+//     === START THE ENDPOINT TO UPDATE MANY USERS BY RANGE DATE AND ROLES=== //
+userController.put(
+    "/users/updateAccessLevel",
+    async (req, res) => {
+    // #swagger.summary = 'Update user level(roles) By Date Ranges.'
+
+    const { startDate, endDate, newRole } = req.query;
+
+    try {
+        const modifiedCount = await updateAccessLevel(startDate, endDate, newRole);
+    
+        res.status(200).json({
+            status: 200,
+            message: "Access level updated successfully",
+            modifiedCount,
+        });
+    } catch (error) {
+        console.log("Error updating access level:", error);
+        res.status(500).json({
+            status: 500,
+            message: "Failed to update access level",
+            error,
+        });
+    }
+});
+  //     === START THE ENDPOINT TO UPDATE MANY USERS === //
 
 
 

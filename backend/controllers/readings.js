@@ -45,54 +45,19 @@ readingsControllers.get(
 //     === END THE ENDPOINT FOR GET ALL ===
 
 //     === START THE ENDPOINT FOR GET MAXIMUM PRECIPITATION ===
-// SCHEMA 
-const getPrecipitationSchema = {
-    type: "object",
-    properties: {
-        min: {
-            type:"string"
-        },
-        max: {
-            type:"string"
-        },
-    }
-}
 
-// endpoint 
 readingsControllers.get(
     "/readings/precipitation1",
     async (req, res) => {
         console.log("debugging Precipitation", req.query)
-        const min = req.body.min
-        const max = req.body.max
-
-        // const { min, max } = req.query; // Use req.query instead of req.body
+        
+        // const { min, max } = req.query; you can use this one it's the same, those who are below are below.
+        const min = req.query.min
+        const max = req.query.max
 
 
     // #swagger.summary = 'Get a Max. Pre.'
 
-/* 
-    #swagger.requestBody = {
-        description: "max Precipitation",
-        content: {
-            'application/json': {
-                schema: {
-                    "min": {
-                        type: "string"
-                    },
-                    "max": {
-                        type: "string"
-                    },          
-                },
-                example:{
-                    "min":"2021-01",
-                    "max":"2021-05"
-                }
-            }
-        }
-    }
-
-    */
 
         try {
             const maxPrecipitation = await maximumPrecipitation(min, max);
@@ -110,6 +75,71 @@ readingsControllers.get(
         }
     }
 );
+
+//     === END THE ENDPOINT FOR GET MAXIMUM PRECIPITATION ===
+
+
+//     === START THE ENDPOINT FOR GET BY DEVICE AND TIME ===
+
+readingsControllers.get("/readings/byDeviceAndTime",
+    async (req, res) => {
+
+    const deviceName = req.query.deviceName;
+    const dateTime = req.query.dateTime;
+    console.log("debugging 1 controllers req.query: ", req.query)
+
+        // #swagger.summary = 'Get a by Device and Time to find temperature, atmospheric pressure, radiation and precipitation .'
+
+
+    try {
+        const result = await getByDeviceAndDateTime(deviceName, dateTime);
+        console.log("debugging 2 controllers result : ", result)
+        console.log("debugging 3 controllers deviceName: ", deviceName )
+        console.log("debugging 4 controllers dateTime: ", dateTime )
+
+        res.status(200).json({
+            status: 200,
+            message: "Readings retrieved successfully",
+            result: result,
+        });
+    }   catch (error) {
+        res.status(500).json({
+            status: 500,
+            message: "Failed to retrieve readings",
+            error: error,
+        });
+    }
+});
+
+//     === END THE ENDPOINT FOR GET BY DEVICE AND TIME ===
+
+//     === START THE ENDPOINT FOR GET THE MAXIMUM TEMPERATURE BY DEVICE AND TIME ===
+
+readingsControllers.get("/readings/maxTemperatureByDevice",
+    async (req, res) => {
+        const startDateTime = req.query.startDateTime;
+        const endDateTime = req.query.endDateTime;
+    
+        // #swagger.summary = 'Get the maximum temperature recorded for each device within a given date/time range.'
+    
+        try {
+            const maxTemperatureReadings = await findMaxTemperatureByDevice(startDateTime, endDateTime);
+            res.status(200).json({
+                status: 200,
+                message: "Maximum temperature readings by device retrieved successfully",
+                maxTemperatureReadings: maxTemperatureReadings
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 500,
+                message: "Failed to retrieve maximum temperature readings by device",
+                error: error
+            });
+        }
+    }
+);
+
+//     === END THE ENDPOINT FOR GET BY DEVICE AND TIME ===
 
 
 
@@ -131,11 +161,30 @@ const getReadingByIDSchema = {
 readingsControllers.get(
     "/readings/:id", 
     [
-        // auth(["admin","teacher","student","iotSensor"]),
+        auth(["admin","teacher","student","iotSensor"]),
         validate({ params: getReadingByIDSchema }),
     ],
     (req, res) => {
         // #swagger.summary = 'Get a specific readings by ID'
+        /* 
+
+    #swagger.requestBody = {
+        description: "Adding new reading",
+        content: {
+            'application/json': {
+                schema: {
+                    "authenticationKey": {
+                        type: "string"
+                    }
+                },
+                example:{
+                    "authenticationKey": "d0a4a0be-64bf-4fe9-badc-d101e9133415",
+                }
+            }
+        }
+    }
+
+    */
 
         const readingID = req.params.id
 
@@ -148,7 +197,8 @@ readingsControllers.get(
         }).catch(error => { 
             res.status(500).json({ 
                 status: 500,
-                message: "failed to get reading by ID"
+                message: "failed to get reading by ID",
+                error
             })
         })
     
@@ -165,7 +215,6 @@ const createReadingSchema = {
     required: [
         "Device Name",
         "Precipitation mm/h",
-        "Time",
         "Latitude",
         "Longitude",
         "Atmospheric Pressure (kPa)",
@@ -182,10 +231,6 @@ const createReadingSchema = {
         },
         "Precipitation mm/h": {
             type: "number"
-        },
-        "Time": {
-            type: "string",
-            pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$"
         },
         "Latitude": {
             type: "number"
@@ -300,7 +345,7 @@ async (req, res) => {
         null,
         readingData['Device Name'],
         readingData['Precipitation mm/h'],
-        new Date(readingData["Time"]),
+        null,
         readingData['Latitude'],
         readingData['Longitude'],
         readingData['Atmospheric Pressure (kPa)'],
@@ -866,7 +911,8 @@ readingsControllers.put("/readings/",
     }).catch(error => {
         res.status(500).json({
             status: 500,
-            message: "Failed to update reading"
+            message: "Failed to update reading",
+            error
         })
     })
 })

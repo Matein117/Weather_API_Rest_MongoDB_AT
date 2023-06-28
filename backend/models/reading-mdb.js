@@ -1,15 +1,38 @@
 import { Reading } from "./reading.js";
 import { ObjectId } from "mongodb";
 import { db } from "../database/mongodb.js"
+import { checkWeatherReadings } from "../triggers/create-trigger-reading.js"
+import { createLocationByLongitudeAndLatitude } from "../triggers/create-trigger-location-by-longitude-and-latitude.js";
+import { updateLocationByLongitudeAndLatitude } from "../triggers/update-trigger-location-by-longitude-and-latitude.js";
+
+
 
 export async function create(reading) {
-    delete reading.id
-    return db.collection("readings2").insertOne(reading)
-        .then(result => {
-            delete reading._id
-            return { ...reading, id: result.insertedId.toString() }
+    // invoke triggers here
+    await checkWeatherReadings(reading); //trigger
+    await createLocationByLongitudeAndLatitude(reading); //trigger
+
+    // New reading should not have an existing ID, delete just to be sure.
+    delete reading.id;
+    reading.Time = { $date: new Date(Date.now()).toISOString() };
+    return db.collection("readings2")
+        .insertOne(reading)
+        .then((result) => {
+            delete reading._id;
+            return { ...reading, id: result.insertedId.toString() };
         })
+        .catch((error) => {
+            throw {
+                statusCode: 500,
+                message: "Failed to create new reading",
+                error,
+            };
+        });
 }
+
+
+
+
 
 export async function createMany(readings) {
     const readingsToInsert = readings.map(reading => {
@@ -149,18 +172,18 @@ export async function getByID(readingID) {
     }
 }
 
+
 export async function update(reading) {
-    console.log("debug for time", reading)
+    await updateLocationByLongitudeAndLatitude(reading);
     const readingID =  new ObjectId(reading._id)
     delete reading._id
     reading.Time = {$date: new Date(Date.now()).toISOString()}
-    console.log("Debug2",reading.Time)
     const readingUpdateDocument = {
         "$set": reading
     }
-    console.log("Debug3",readingUpdateDocument)
     return db.collection("readings2").updateOne({ _id: readingID }, readingUpdateDocument )
 }
+
 
 export async function deleteByID(readingID) {
     return db.collection("readings2").deleteOne({ _id: new ObjectId(readingID) })
@@ -221,3 +244,79 @@ export async function maximumPrecipitation(min, max) {
         throw error;
     }
 }
+
+export async function getByDeviceAndDateTime(deviceName, dateTime) {
+    const query = {
+        "Device Name": deviceName,
+        Time: new Date(dateTime),
+    };
+    const projection = {
+        _id: 0,
+        "Temperature (C)": 1,
+        "Atmospheric Pressure (kPa)": 1,
+        "Solar Radiation (W/m2)": 1,
+        "Precipitation mm/h": 1,
+    };
+
+    try {
+        const result = await db.collection("readings2").find(query, projection).toArray();
+        console.log("debugging 3 models result: ", result)
+        return result.map((readingResult) =>
+            new Reading(
+                null,
+                deviceName,
+                readingResult["Precipitation mm/h"],
+                dateTime,
+                null,
+                null,
+                readingResult["Atmospheric Pressure (kPa)"],
+                null,
+                readingResult["Solar Radiation (W/m2)"],
+                null,
+                null,
+                readingResult["Temperature (C)"],
+                null
+            )
+        );
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function findMaxTemperatureByDevice(startDateTime, endDateTime) {
+    const query = {
+        "Device Name": {
+            $in: ["Yandina_Sensor", "Noosa_Sensor", "Woodford_Sensor"]
+        },
+        Time: {
+            $gte: new Date(startDateTime),
+            $lte: new Date(endDateTime)
+        }
+    };    
+    const projection = {
+        _id: 0,
+        "Device Name": 1,
+        Time: 1,
+        "Temperature (C)": 1
+    };    
+    try {
+        const result = await db.collection("readings2").find(query, projection).toArray();
+        const maxTemperatureReadings = {};
+        result.forEach(reading => {
+            const deviceName = reading["Device Name"];
+            const temperature = reading["Temperature (C)"];
+            const dateTime = reading.Time;    
+            if (!maxTemperatureReadings[deviceName] || temperature > maxTemperatureReadings[deviceName].temperature) {
+                maxTemperatureReadings[deviceName] = {
+                    sensorName: deviceName,
+                    dateTime,
+                    temperature
+                };
+            }
+        });
+        return Object.values(maxTemperatureReadings);
+    } catch (error) {
+        throw error;
+    }
+}
+

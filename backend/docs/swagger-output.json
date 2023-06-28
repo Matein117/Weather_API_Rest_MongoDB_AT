@@ -103,7 +103,22 @@
       "get": {
         "summary": "Get a Max. Pre.",
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "min",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -111,24 +126,65 @@
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "requestBody": {
-          "description": "max Precipitation",
-          "content": {
-            "application/json": {
-              "schema": {
-                "min": {
-                  "type": "string"
-                },
-                "max": {
-                  "type": "string"
-                }
-              },
-              "example": {
-                "min": "2021-01",
-                "max": "2021-05"
-              }
+        }
+      }
+    },
+    "/readings/byDeviceAndTime": {
+      "get": {
+        "summary": "Get a by Device and Time to find temperature, atmospheric pressure, radiation and precipitation .",
+        "description": "",
+        "parameters": [
+          {
+            "name": "deviceName",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
+          },
+          {
+            "name": "dateTime",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/readings/maxTemperatureByDevice": {
+      "get": {
+        "summary": "Get the maximum temperature recorded for each device within a given date/time range.",
+        "description": "",
+        "parameters": [
+          {
+            "name": "startDateTime",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDateTime",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -153,6 +209,21 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "description": "Adding new reading",
+          "content": {
+            "application/json": {
+              "schema": {
+                "authenticationKey": {
+                  "type": "string"
+                }
+              },
+              "example": {
+                "authenticationKey": "d0a4a0be-64bf-4fe9-badc-d101e9133415"
+              }
+            }
           }
         }
       },
@@ -732,18 +803,39 @@
                     "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
                     "user": [
                       {
+                        "email": "studentA@server.com",
+                        "password": "abc123",
+                        "role": "student",
+                        "firstName": "studentA",
+                        "lastName": "studentA"
+                      },
+                      {
                         "email": "studentB@server.com",
                         "password": "abc123",
-                        "role": "studentB",
+                        "role": "student",
                         "firstName": "studentB",
                         "lastName": "studentB"
                       },
                       {
                         "email": "studentC@server.com",
                         "password": "abc123",
-                        "role": "studentC",
+                        "role": "student",
                         "firstName": "studentC",
                         "lastName": "studentC"
+                      },
+                      {
+                        "email": "studentD@server.com",
+                        "password": "abc123",
+                        "role": "student",
+                        "firstName": "studentD",
+                        "lastName": "studentD"
+                      },
+                      {
+                        "email": "studentE@server.com",
+                        "password": "abc123",
+                        "role": "student",
+                        "firstName": "studentE",
+                        "lastName": "studentE"
                       }
                     ]
                   }
@@ -831,13 +923,53 @@
                 }
               },
               "example": {
-                "authenticationKey": "b2317874-ab1c-4d71-9883-2bba10b71ebd",
+                "authenticationKey": "d0a4a0be-64bf-4fe9-badc-d101e9133415",
                 "ids": [
-                  "645b3f4e9b9feee93455ea90",
-                  "645b3f4e9b9feee93455ea8f"
+                  "any ID here",
+                  "any ID here",
+                  "any ID here",
+                  "any ID here",
+                  "any ID here"
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    "/users/updateAccessLevel": {
+      "put": {
+        "summary": "Update user level(roles) By Date Ranges.",
+        "description": "",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newRole",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

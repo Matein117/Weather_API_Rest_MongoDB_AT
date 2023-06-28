@@ -1,4 +1,4 @@
-export function User(id, email, password, role, firstName, lastName, authenticationKey) {
+export function User(id, email, password, role, firstName, lastName, authenticationKey, dateCreated) {
     return {
         id,
         email,
@@ -6,12 +6,8 @@ export function User(id, email, password, role, firstName, lastName, authenticat
         role,
         firstName,
         lastName,
-        authenticationKey
+        authenticationKey,
+        dateCreated: {$date: new Date(dateCreated).toISOString()}
     }
 }
 
-// import {create, getAll, getByID, update, deleteByID } from "./user-mdb.js"
-
-// getByID("64339237c7815bb0fd40419e")
-//     .then(reading => console.log(reading))
-//     .catch(error => console.log(error))

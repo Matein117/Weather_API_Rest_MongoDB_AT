@@ -33,8 +33,8 @@ app.use(docsRouter)
 /* ====\/\/\/\/\/\/\/\/\/\/==== */
 
 // readings
-import readingsController from "./controllers/readings.js"
-app.use(readingsController)
+import readingsControllers from "./controllers/readings.js"
+app.use(readingsControllers)
 
 //Users
 import usersControllers from "./controllers/users.js"

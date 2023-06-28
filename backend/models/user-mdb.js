@@ -15,7 +15,8 @@ export async function getAll() {
             userResult.role,
             userResult.firstName,
             userResult.lastName,
-            userResult.authenticationKey
+            userResult.authenticationKey,
+            userResult.dateCreated
         )
     )
 }
@@ -33,7 +34,8 @@ export async function getByID(userID) {
                 userResult.role,
                 userResult.firstName,
                 userResult.lastName,
-                userResult.authenticationKey
+                userResult.authenticationKey,
+                userResult.dateCreated
             )
         )
     } else {
@@ -56,7 +58,8 @@ export async function getByEmail(email) {
                 userResult.role,
                 userResult.firstName,
                 userResult.lastName,
-                userResult.authenticationKey
+                userResult.authenticationKey,
+                userResult.dateCreated
             )
         )
     } else {
@@ -77,7 +80,8 @@ export async function getByAuthenticationKey(authenticationKey) {
                 userResult.role,
                 userResult.firstName,
                 userResult.lastName,
-                userResult.authenticationKey
+                userResult.authenticationKey,
+                userResult.dateCreated
             )
         )
     } else {
@@ -86,18 +90,25 @@ export async function getByAuthenticationKey(authenticationKey) {
 }
 
 export async function create(user) {
-    // New users should not have existing IDs, delete just to be sure.
-    delete user.id
-    // Insert user object and return resulting promise
-    return db.collection("users").insertOne(user).then(result => {
-        delete user._id
-        return { ...user, id: result.insertedId.toString() }
-    })
+    const userWithDate = {
+        ...user,
+        dateCreated: new Date(Date.now()).toISOString()
+    };
+
+    delete userWithDate.id;
+
+    return db.collection("users").insertOne(userWithDate).then(result => {
+        delete userWithDate._id;
+        return { ...userWithDate, id: result.insertedId.toString() };
+    });
 }
+
 
 export async function createMany(users) {
     const usersToInsert = users.map(user => {
         delete user.id;
+        user.dateCreated = new Date().toISOString(); // Set the date created
+
         return user;
     });
     const result = await db.collection("users").insertMany(usersToInsert);
@@ -126,10 +137,28 @@ export async function deleteMany(ids) {
     const objIds = ids.map(id => {
         return new ObjectId(id)
     })
-    console.log("Debugo",objIds)
+    console.log("Debugging",objIds)
 
     const result = await db.collection("users").deleteMany({ _id: { $in: objIds } });
     console.log("Debug 2 /models/ result:", result);    
     console.log("Debug 3 /models/ result.delete:",result.deletedCount);
     return result.deletedCount;
+}
+
+export async function updateAccessLevel(startDate, endDate, newRole) {
+    try {
+        const result = await db.collection("users").updateMany(
+            {
+                $and: [
+                    { dateCreated: { $gte: startDate } },
+                    { dateCreated: { $lte: endDate } },
+                ],
+            },
+            { $set: { role: newRole } }
+        );
+    
+        return result.modifiedCount;
+    } catch (error) {
+        throw error;
+    }
 }
